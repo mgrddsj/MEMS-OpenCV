@@ -3,7 +3,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 
-file_path = "img/50x_6.jpg"
+file_path = "img/50x_14.jpg"
 
 st.set_page_config(layout="centered")
 st.header("")
@@ -44,7 +44,6 @@ st.image(img, use_column_width=True, clamp=True, caption="轮廓")
 # 霍夫变换
 blank2 = np.zeros(img.shape, np.uint8)
 blank2 = cv2.cvtColor(blank2, cv2.COLOR_GRAY2BGR)
-st.image(img, use_column_width=True, clamp=True, caption="霍夫变换前")
 lines = cv2.HoughLinesP(img, 1, np.pi/180, 100,
                         minLineLength=100, maxLineGap=10)
 for line in lines:
