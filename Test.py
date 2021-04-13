@@ -46,8 +46,10 @@ st.image(img, use_column_width=True, clamp=True, caption="轮廓")
 # 霍夫变换
 blank2 = np.zeros(img.shape, np.uint8)
 blank2 = cv2.cvtColor(blank2, cv2.COLOR_GRAY2BGR)
-houghThreshhold = st.sidebar.slider("霍夫变换阈值", min_value = 1, max_value=1000, value=100)
-lines = cv2.HoughLinesP(img, 1, np.pi/180, houghThreshhold,
+houghRho = st.sidebar.slider("霍夫变换 rho 值", min_value=1, max_value=10, value=1)
+houghThreshhold = st.sidebar.slider(
+    "霍夫变换阈值", min_value=1, max_value=1000, value=100)
+lines = cv2.HoughLinesP(img, houghRho, np.pi/2, houghThreshhold,
                         minLineLength=100, maxLineGap=10)
 for line in lines:
     x1, y1, x2, y2 = line[0]
@@ -58,16 +60,18 @@ st.text("lines detected: {}".format(len(lines)))
 # Harris 角点检测
 corners = cv2.cornerHarris(img, blockSize=5, ksize=5, k=0.04)
 harris_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-harris_img[corners>0.1*corners.max()] = [0, 255, 0]
+harris_img[corners > 0.1*corners.max()] = [0, 255, 0]
 st.image(harris_img, use_column_width=True, clamp=True, caption="Harris 角点检测")
 st.text("Corners detected: {}".format(len(corners)))
 
 # Shi-Tomasi 角点检测
-corners_s = cv2.goodFeaturesToTrack(img, maxCorners=100, qualityLevel=0.01, minDistance=0)
+corners_s = cv2.goodFeaturesToTrack(
+    img, maxCorners=100, qualityLevel=0.01, minDistance=0)
 corners_s = np.int0(corners_s)
 shitomasi_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 for i in corners_s:
     x, y = i.ravel()
     cv2.circle(shitomasi_img, (x, y), 10, (0, 255, 0), -1)
-st.image(shitomasi_img, use_column_width=True, clamp=True, caption="Shi-Tomasi 角点检测")
+st.image(shitomasi_img, use_column_width=True,
+         clamp=True, caption="Shi-Tomasi 角点检测")
 st.text("Corners detected: {}".format(len(corners_s)))
