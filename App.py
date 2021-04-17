@@ -62,21 +62,3 @@ for line in lines:
 st.image(blank2, use_column_width=True, clamp=True, caption="霍夫变换")
 st.text("lines detected: {}".format(len(lines)))
 
-# Harris 角点检测
-corners = cv2.cornerHarris(img, blockSize=5, ksize=5, k=0.04)
-harris_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-harris_img[corners > 0.1*corners.max()] = [0, 255, 0]
-st.image(harris_img, use_column_width=True, clamp=True, caption="Harris 角点检测")
-st.text("Corners detected: {}".format(len(corners)))
-
-# Shi-Tomasi 角点检测
-corners_s = cv2.goodFeaturesToTrack(
-    img, maxCorners=100, qualityLevel=0.01, minDistance=0)
-corners_s = np.int0(corners_s)
-shitomasi_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-for i in corners_s:
-    x, y = i.ravel()
-    cv2.circle(shitomasi_img, (x, y), 10, (0, 255, 0), -1)
-st.image(shitomasi_img, use_column_width=True,
-         clamp=True, caption="Shi-Tomasi 角点检测")
-st.text("Corners detected: {}".format(len(corners_s)))
