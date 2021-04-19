@@ -37,10 +37,10 @@ st.image(thresh, use_column_width=True, clamp=True, caption="阈值处理")
 
 # 轮廓
 thresh = thresh.astype(np.uint8)
-contours, hierarchy = cv2.findContours(
-    thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-blank = np.zeros(thresh.shape, np.uint8)
-# img = cv2.drawContours(blank, contours, -1, (255, 255, 255), 3)
+# contours, hierarchy = cv2.findContours(
+#     thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+# blank = np.zeros(thresh.shape, np.uint8)
+# img = cv2.drawContours(blank, contours, -1, (255, 255, 255), 1)
 img = cv2.Canny(thresh, 100, 200)
 st.image(img, use_column_width=True, clamp=True, caption="轮廓")
 # cv2.imwrite("contour.png", img)
@@ -50,15 +50,16 @@ blank2 = np.zeros(img.shape, np.uint8)
 blank2 = cv2.cvtColor(blank2, cv2.COLOR_GRAY2BGR)
 houghRho = st.sidebar.slider("霍夫变换 rho 值（搜索步长）", min_value=1, max_value=10, value=1)
 houghThreshhold = st.sidebar.slider(
-    "霍夫变换阈值", min_value=1, max_value=1000, value=100)
+    "霍夫变换阈值", min_value=1, max_value=1000, value=30)
 houghMinLineLength = st.sidebar.slider(
-    "霍夫最短线段长度", min_value=1, max_value=500, value=10)
-houghMaxLineGap = st.sidebar.slider("霍夫最长间隙", min_value=1, max_value=200, value=100)
-lines = cv2.HoughLinesP(img, houghRho, np.pi/180, houghThreshhold,
+    "霍夫最短线段长度", min_value=1, max_value=500, value=1)
+houghMaxLineGap = st.sidebar.slider("霍夫最长间隙", min_value=1, max_value=200, value=50)
+lines = cv2.HoughLinesP(img, houghRho, np.pi/360, houghThreshhold,
                         minLineLength=houghMinLineLength, maxLineGap=houghMaxLineGap)
 for line in lines:
     x1, y1, x2, y2 = line[0]
     cv2.line(blank2, (x1, y1), (x2, y2), (0, 255, 0), 2)
 st.image(blank2, use_column_width=True, clamp=True, caption="霍夫变换")
 st.text("lines detected: {}".format(len(lines)))
+
 
