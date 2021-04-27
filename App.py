@@ -54,7 +54,7 @@ houghThreshhold = st.sidebar.slider(
 houghMinLineLength = st.sidebar.slider(
     "霍夫最短线段长度", min_value=1, max_value=500, value=1)
 houghMaxLineGap = st.sidebar.slider("霍夫最长间隙", min_value=1, max_value=200, value=50)
-lines = cv2.HoughLinesP(img, houghRho, np.pi/360, houghThreshhold,
+lines = cv2.HoughLinesP(img, houghRho, np.pi/60, houghThreshhold,
                         minLineLength=houghMinLineLength, maxLineGap=houghMaxLineGap)
 for line in lines:
     x1, y1, x2, y2 = line[0]
