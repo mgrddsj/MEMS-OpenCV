@@ -15,7 +15,7 @@ gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 st.image(image, use_column_width=True, caption="原图")
 
 CHESSBOARD = (5, 5)
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria = (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
 
 # Creating vector to store vectors of 3D points for each CHESSBOARD image
 objpoints = []
@@ -48,3 +48,7 @@ st.write("旋转向量 rvecs:")
 st.write(rvecs[0])
 st.write("位移向量 tvecs:")
 st.write(tvecs[0])
+
+undistorted = cv2.undistort(image, mtx, dist)
+# cv2.imwrite("undistorted.jpg", undistorted)
+st.image(undistorted, use_column_width=True, caption="校正后的图像")
