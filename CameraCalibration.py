@@ -46,7 +46,7 @@ if __name__ == '__main__':
     start_time = time.time()
     pool = multiprocessing.Pool()
     func = partial(processImages, CHESSBOARD=CHESSBOARD, criteria=criteria, objpoints=objpoints, imgpoints=imgpoints, objp=objp)
-    for _ in stqdm.stqdm(pool.imap_unordered(func, file_list), total=len(file_list)):
+    for _ in stqdm.stqdm(pool.imap_unordered(func, file_list), total=len(file_list), unit="photo"):
         pass
         
     pool.close()
