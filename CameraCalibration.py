@@ -1,13 +1,14 @@
+from functools import partial
 import cv2
 import streamlit as st
 import numpy as np
 import glob
 import multiprocessing
 import time
+import stqdm
 from PIL import Image
 
 def processImages(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp):
-    print("processing", file_path)
     image = cv2.imread(file_path)  
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # st.image(image, use_column_width=True, caption="原图", channels="BGR")
@@ -20,12 +21,8 @@ def processImages(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp):
         
         imgpoints.append(corners2)
 
-        print("processed", file_path)
-
         # Draw and display the corners
         # corners_img = cv2.drawChessboardCorners(image, CHESSBOARD, corners2,ret)
-        # st.image(corners_img, use_column_width=True, caption="棋盘检测结果", channels="BGR")
-        # st.write("{} corners detected".format(file_path))
 
 if __name__ == '__main__':    
     st.set_page_config(layout="centered")
@@ -47,18 +44,17 @@ if __name__ == '__main__':
 
     # Multiprocess
     start_time = time.time()
-    processes = []
-    for file_path in file_list:
-        p = multiprocessing.Process(target=processImages, args=(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp))
-        processes.append(p)
-        p.start()
-
-    for p in processes:
-        p.join()
+    pool = multiprocessing.Pool()
+    func = partial(processImages, CHESSBOARD=CHESSBOARD, criteria=criteria, objpoints=objpoints, imgpoints=imgpoints, objp=objp)
+    for _ in stqdm.stqdm(pool.imap_unordered(func, file_list), total=len(file_list)):
+        pass
+        
+    pool.close()
+    pool.join()
     
-    print("objpoints length:", len(objpoints))
-    print("imgpoints length:", len(imgpoints))
-    print("Time used:", time.time()-start_time)
+    st.write("objpoints length:", len(objpoints))
+    st.write("imgpoints length:", len(imgpoints))
+    st.write("Time used:", time.time()-start_time)
 
     # 相机校准
     image = cv2.imread("camcalib/1.jpg")
