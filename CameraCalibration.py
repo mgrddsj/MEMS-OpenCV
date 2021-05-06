@@ -2,27 +2,12 @@ import cv2
 import streamlit as st
 import numpy as np
 import glob
+import multiprocessing
+import time
 from PIL import Image
 
-st.set_page_config(layout="centered")
-st.header("")
-
-file_list = glob.glob("camcalib/*.jpg")
-
-
-CHESSBOARD = (7, 9)
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
-
-# Creating vector to store vectors of 3D points for each CHESSBOARD image
-objpoints = []
-# Creating vector to store vectors of 2D points for each CHESSBOARD image
-imgpoints = [] 
-
-# Defining the world coordinates for 3D points
-objp = np.zeros((1, CHESSBOARD[0]*CHESSBOARD[1], 3), np.float32)
-objp[0,:,:2] = np.mgrid[0:CHESSBOARD[0], 0:CHESSBOARD[1]].T.reshape(-1, 2)
-
-for file_path in file_list:
+def processImages(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp):
+    print("processing", file_path)
     image = cv2.imread(file_path)  
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # st.image(image, use_column_width=True, caption="原图", channels="BGR")
@@ -35,23 +20,59 @@ for file_path in file_list:
         
         imgpoints.append(corners2)
 
+        print("processed", file_path)
+
         # Draw and display the corners
-        corners_img = cv2.drawChessboardCorners(image, CHESSBOARD, corners2,ret)
+        # corners_img = cv2.drawChessboardCorners(image, CHESSBOARD, corners2,ret)
         # st.image(corners_img, use_column_width=True, caption="棋盘检测结果", channels="BGR")
-        st.write("{} corners detected".format(file_path))
+        # st.write("{} corners detected".format(file_path))
 
-# 相机校准
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-st.write("相机内参矩阵 mtx:")
-st.write(mtx)
-st.write("透镜畸变系数 dist:")
-st.write(dist)
-st.write("旋转向量 rvecs:")
-st.write(rvecs[0])
-st.write("位移向量 tvecs:")
-st.write(tvecs[0])
+if __name__ == '__main__':    
+    st.set_page_config(layout="centered")
+    st.header("")
 
-image = cv2.imread("camcalib/1.jpg")
-undistorted = cv2.undistort(image, mtx, dist)
-# cv2.imwrite("undistorted.jpg", undistorted)
-st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
+    file_list = glob.glob("camcalib/*.jpg")
+    CHESSBOARD = (7, 9)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
+
+    manager = multiprocessing.Manager()
+    # Creating vector to store vectors of 3D points for each CHESSBOARD image
+    objpoints = manager.list()
+    # Creating vector to store vectors of 2D points for each CHESSBOARD image
+    imgpoints = manager.list()
+
+    # Defining the world coordinates for 3D points
+    objp = np.zeros((1, CHESSBOARD[0]*CHESSBOARD[1], 3), np.float32)
+    objp[0,:,:2] = np.mgrid[0:CHESSBOARD[0], 0:CHESSBOARD[1]].T.reshape(-1, 2)
+
+    # Multiprocess
+    start_time = time.time()
+    processes = []
+    for file_path in file_list:
+        p = multiprocessing.Process(target=processImages, args=(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp))
+        processes.append(p)
+        p.start()
+
+    for p in processes:
+        p.join()
+    
+    print("objpoints length:", len(objpoints))
+    print("imgpoints length:", len(imgpoints))
+    print("Time used:", time.time()-start_time)
+
+    # 相机校准
+    image = cv2.imread("camcalib/1.jpg")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+    st.write("相机内参矩阵 mtx:")
+    st.write(mtx)
+    st.write("透镜畸变系数 dist:")
+    st.write(dist)
+    st.write("旋转向量 rvecs:")
+    st.write(rvecs[0])
+    st.write("位移向量 tvecs:")
+    st.write(tvecs[0])
+
+    undistorted = cv2.undistort(image, mtx, dist)
+    # cv2.imwrite("undistorted.jpg", undistorted)
+    st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
