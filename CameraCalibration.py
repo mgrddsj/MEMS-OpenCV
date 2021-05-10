@@ -29,7 +29,7 @@ if __name__ == '__main__':
     st.header("")
 
     file_list = glob.glob("camcalib/*.jpg")
-    CHESSBOARD = (7, 9)
+    CHESSBOARD = (9, 7)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
 
     manager = multiprocessing.Manager()
