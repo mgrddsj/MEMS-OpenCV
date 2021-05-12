@@ -3,6 +3,7 @@ import streamlit as st
 import numpy as np
 import glob
 from PIL import Image
+from streamlit_cropper import st_cropper
 
 st.set_page_config(layout="centered")
 st.header("")
@@ -10,14 +11,16 @@ st.header("")
 file_list = glob.glob("img/*")
 file_path = st.sidebar.selectbox("Image:", file_list, index=8)
 
-image = cv2.imread(file_path, 0)  # Read as grayscale image
-st.image(image, use_column_width=True, caption="灰度图")
+image = cv2.imread(file_path)
+cropped = st_cropper(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))
+gray = cv2.cvtColor(np.array(cropped), cv2.COLOR_RGB2GRAY)
+st.image(gray, use_column_width=True, caption="灰度图")
 
 # 最大滤波处理
 kernel = np.ones((3, 3), np.uint8)
 dilate_iteration = st.sidebar.slider(
     "最大滤波（膨涨）次数", min_value=1, max_value=50, value=25)
-dilate = cv2.dilate(image, kernel, iterations=dilate_iteration)
+dilate = cv2.dilate(gray, kernel, iterations=dilate_iteration)
 st.image(dilate, use_column_width=True, clamp=True, caption="最大滤波处理")
 
 # 最小滤波处理
@@ -61,7 +64,6 @@ for line in lines:
     cv2.line(blank2, (x1, y1), (x2, y2), (0, 255, 0), 2)
 st.image(blank2, use_column_width=True, clamp=True, caption="霍夫变换")
 st.text("lines detected: {}".format(len(lines)))
-
 
 # Shi-Tomasi 角点检测
 corners_s = cv2.goodFeaturesToTrack(
