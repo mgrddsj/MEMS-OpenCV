@@ -60,10 +60,16 @@ lines = cv2.HoughLinesP(img, houghRho, np.pi/60, houghThreshhold,
                         minLineLength=houghMinLineLength, maxLineGap=houghMaxLineGap)
 for line in lines:
     x1, y1, x2, y2 = line[0]
-    cv2.line(blank2, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    cv2.line(blank2, (x1, y1), (x2, y2), (0, 255, 0), 1)
 st.image(blank2, caption="霍夫变换")
 st.text("lines detected: {}".format(len(lines)))
-st.text (lines)
+
+line_num = st.number_input("line number", 0, len(lines)-1, 0)
+blank3 = np.zeros(img.shape, np.uint8)
+blank3 = cv2.cvtColor(blank3, cv2.COLOR_GRAY2BGR)
+x1, y1, x2, y2 = lines[line_num][0]
+cv2.line(blank3, (x1, y1), (x2, y2), (0, 255, 0), 1)
+st.image(blank3, caption="selected line")
 
 # Shi-Tomasi 角点检测
 corners_s = cv2.goodFeaturesToTrack(
