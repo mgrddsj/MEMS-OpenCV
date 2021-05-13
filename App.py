@@ -19,7 +19,7 @@ st.image(gray, caption="灰度图")
 # 最大滤波处理
 kernel = np.ones((3, 3), np.uint8)
 dilate_iteration = st.sidebar.slider(
-    "最大滤波（膨涨）次数", min_value=1, max_value=50, value=25)
+    "最大滤波（膨涨）次数", min_value=1, max_value=50, value=3)
 dilate = cv2.dilate(gray, kernel, iterations=dilate_iteration)
 st.image(dilate, caption="最大滤波处理")
 
@@ -27,7 +27,7 @@ st.image(dilate, caption="最大滤波处理")
 kernel = np.ones((3, 3), np.uint8)
 # iteration的值越高，模糊程度(腐蚀程度)就越高 呈正相关关系且只能是整数
 erosion_iteration = st.sidebar.slider(
-    "最小滤波（腐蚀）次数", min_value=1, max_value=50, value=25)
+    "最小滤波（腐蚀）次数", min_value=1, max_value=50, value=3)
 erosion = cv2.erode(dilate, kernel, iterations=erosion_iteration)
 st.image(erosion, caption="最小滤波处理")
 
@@ -56,7 +56,7 @@ houghThreshhold = st.sidebar.slider(
 houghMinLineLength = st.sidebar.slider(
     "霍夫最短线段长度", min_value=1, max_value=500, value=1)
 houghMaxLineGap = st.sidebar.slider("霍夫最长间隙", min_value=1, max_value=200, value=50)
-lines = cv2.HoughLinesP(img, houghRho, np.pi/60, houghThreshhold,
+lines = cv2.HoughLinesP(img, houghRho, np.pi/360, houghThreshhold,
                         minLineLength=houghMinLineLength, maxLineGap=houghMaxLineGap)
 for line in lines:
     x1, y1, x2, y2 = line[0]
@@ -73,11 +73,11 @@ st.image(blank3, caption="selected line")
 
 # Shi-Tomasi 角点检测
 corners_s = cv2.goodFeaturesToTrack(
-    img, maxCorners=50, qualityLevel=0.1, minDistance=100)
+    img, maxCorners=4, qualityLevel=0.01, minDistance=10)
 corners_s = np.int0(corners_s)
 shitomasi_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 for i in corners_s:
     x, y = i.ravel()
-    cv2.circle(shitomasi_img, (x, y), 10, (0, 255, 0), -1)
+    cv2.circle(shitomasi_img, (x, y), 5, (0, 255, 0), -1)
 st.image(shitomasi_img, caption="Shi-Tomasi 角点检测")
 st.text("Corners detected: {}".format(len(corners_s)))
