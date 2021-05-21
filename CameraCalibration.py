@@ -52,13 +52,10 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
     
-    st.write("objpoints length:", len(objpoints))
-    st.write("imgpoints length:", len(imgpoints))
-    st.write("Time used:", time.time()-start_time)
+    st.write("Number of image used to calibrate the camera:", len(objpoints))
+    st.write("Time used:", time.time()-start_time, "s")
 
     # 相机校准
-    image = cv2.imread("camcalib/1.jpg")
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
     st.write("相机内参矩阵 mtx:")
     st.write(mtx)
@@ -69,6 +66,8 @@ if __name__ == '__main__':
     st.write("位移向量 tvecs:")
     st.write(tvecs[0])
 
+    image = cv2.imread("camcalib/1.jpg")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     undistorted = cv2.undistort(image, mtx, dist)
     # cv2.imwrite("undistorted.jpg", undistorted)
     st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
