@@ -27,47 +27,51 @@ def processImages(file_path, CHESSBOARD, criteria, objpoints, imgpoints, objp):
 if __name__ == '__main__':    
     st.set_page_config(layout="centered")
     st.header("")
+    # file_list = glob.glob("camcalib/*.jpg")
+    file_list = glob.glob("camcalib3/*.jpg")
+    # file_list = ['camcalib\\1.jpg', 'camcalib\\10.jpg', 'camcalib\\11.jpg', 'camcalib\\13.jpg', 'camcalib\\14.jpg', 'camcalib\\15.jpg', 'camcalib\\3.jpg', 'camcalib\\4.jpg', 'camcalib\\5.jpg', 'camcalib\\6.jpg', 'camcalib\\8.jpg']
+    if st.button("Start camera calibration 开始相机矫正"):
+        CHESSBOARD = (7, 9)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
 
-    file_list = glob.glob("camcalib/*.jpg")
-    CHESSBOARD = (9, 7)
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001) # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
+        manager = multiprocessing.Manager()
+        # Creating vector to store vectors of 3D points for each CHESSBOARD image
+        objpoints = manager.list()
+        # Creating vector to store vectors of 2D points for each CHESSBOARD image
+        imgpoints = manager.list()
 
-    manager = multiprocessing.Manager()
-    # Creating vector to store vectors of 3D points for each CHESSBOARD image
-    objpoints = manager.list()
-    # Creating vector to store vectors of 2D points for each CHESSBOARD image
-    imgpoints = manager.list()
+        # Defining the world coordinates for 3D points
+        objp = np.zeros((1, CHESSBOARD[0]*CHESSBOARD[1], 3), np.float32)
+        objp[0,:,:2] = np.mgrid[0:CHESSBOARD[0], 0:CHESSBOARD[1]].T.reshape(-1, 2)
 
-    # Defining the world coordinates for 3D points
-    objp = np.zeros((1, CHESSBOARD[0]*CHESSBOARD[1], 3), np.float32)
-    objp[0,:,:2] = np.mgrid[0:CHESSBOARD[0], 0:CHESSBOARD[1]].T.reshape(-1, 2)
-
-    # Multiprocess
-    start_time = time.time()
-    pool = multiprocessing.Pool()
-    func = partial(processImages, CHESSBOARD=CHESSBOARD, criteria=criteria, objpoints=objpoints, imgpoints=imgpoints, objp=objp)
-    for _ in stqdm.stqdm(pool.imap_unordered(func, file_list), total=len(file_list), unit="photo"):
-        pass
+        # Multiprocess
+        start_time = time.time()
+        pool = multiprocessing.Pool()
+        func = partial(processImages, CHESSBOARD=CHESSBOARD, criteria=criteria, objpoints=objpoints, imgpoints=imgpoints, objp=objp)
+        for _ in stqdm.stqdm(pool.imap_unordered(func, file_list), total=len(file_list), unit="photo"):
+            pass
+            
+        pool.close()
+        pool.join()
         
-    pool.close()
-    pool.join()
-    
-    st.write("Number of image used to calibrate the camera:", len(objpoints))
-    st.write("Time used:", time.time()-start_time, "s")
+        st.write("Number of image used to calibrate the camera:", len(objpoints))
+        st.write("Time used:", time.time()-start_time, "s")
 
-    # 相机校准
-    image = cv2.imread("camcalib/1.jpg")
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-    st.write("相机内参矩阵 mtx:")
-    st.write(mtx)
-    st.write("透镜畸变系数 dist:")
-    st.write(dist)
-    st.write("旋转向量 rvecs:")
-    st.write(rvecs[0])
-    st.write("位移向量 tvecs:")
-    st.write(tvecs[0])
+        # 相机校准
+        image = cv2.imread("camcalib3/IMG_20210524_103804.jpg")
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+        st.write("相机内参矩阵 mtx:")
+        st.write(mtx)
+        st.write("透镜畸变系数 dist:")
+        st.write(dist)
+        st.write("旋转向量 rvecs:")
+        st.write(rvecs[0])
+        st.write("位移向量 tvecs:")
+        st.write(tvecs[0])
 
-    undistorted = cv2.undistort(image, mtx, dist)
-    # cv2.imwrite("undistorted.jpg", undistorted)
-    st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
+        undistorted = cv2.undistort(image, mtx, dist)
+        cv2.imwrite("undistorted.jpg", undistorted)
+        st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
+    else:
+        st.write("Press the button to start")
