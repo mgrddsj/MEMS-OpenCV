@@ -73,5 +73,12 @@ if __name__ == '__main__':
         undistorted = cv2.undistort(image, mtx, dist)
         cv2.imwrite("undistorted.jpg", undistorted)
         st.image(undistorted, use_column_width=True, caption="校正后的图像", channels="BGR")
+
+        total_error = 0
+        for i in range(len(objpoints)):
+            img_points_repro, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+            error = cv2.norm(imgpoints[i], img_points_repro, cv2.NORM_L2)/len(img_points_repro)
+            total_error += error
+        st.write(("精度 Average Error of Reproject: "), total_error/len(objpoints))
     else:
         st.write("Press the button to start")
