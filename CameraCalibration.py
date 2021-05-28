@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
         # 相机校准
         image = cv2.imread("camcalib3/IMG_20210524_103804.jpg")
+        # image = cv2.imread("camcalib2/IMG_20210524_081912.jpg")
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         st.write("相机内参矩阵 mtx:")
